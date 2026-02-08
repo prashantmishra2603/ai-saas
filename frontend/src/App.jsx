@@ -13,6 +13,7 @@ import BlogTitles from "./pages/BlogTitles";
 import Dashboard from "./pages/Dashboard";
 import RemoveBackground from "./pages/RemoveBackground";
 import { useAuth } from "@clerk/clerk-react";
+import CodeReview from "./pages/CodeReview";
 const App = () => {
 const {getToken} = useAuth()
 useEffect (() => {
@@ -41,6 +42,7 @@ useEffect (() => {
           <Route path="remove-object" element={<RemoveObject />} />
           <Route path="review-resume" element={<ReviewResume />} />
           <Route path="remove-background" element={<RemoveBackground />} />
+          <Route path="review-code" element={<CodeReview />} />
           <Route path="community" element={<Community />} />
         </Route>
       </Routes>
