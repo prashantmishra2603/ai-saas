@@ -68,16 +68,28 @@ const Sidebar = ({ sidebar, setSidebar }) => {
         </div>
       </div>
 
-      {/* Footer Profile & Logout Section [cite: 7] */}
+      {/* Footer Profile & Logout Section */}
       <div className='mb-7 w-full px-4 flex items-center justify-between border-t pt-4'>
         <div 
           onClick={openUserProfile} 
           className='flex gap-2 items-center cursor-pointer'
         >
-          <img src={user?.imageUrl} className='w-8 rounded-full' alt="" />
+          <img src={user?.imageUrl} className='w-8 h-8 rounded-full' alt="" />
           <div>
-            <h1 className='text-sm font-medium'>{user?.fullName}</h1>
-            <p className='text-xs text-gray-500'>Free Plan</p>
+            <h1 className='text-sm font-medium text-slate-800 truncate max-w-28'>{user?.fullName || user?.primaryEmailAddress?.emailAddress}</h1>
+            <p className={`text-xs font-medium ${
+              user?.publicMetadata?.plan === 'premium' || 
+              user?.publicMetadata?.role === 'admin' ||
+              user?.unsafeMetadata?.plan === 'premium'
+                ? 'text-purple-600 font-semibold'
+                : 'text-gray-500'
+            }`}>
+              {user?.publicMetadata?.plan === 'premium' || 
+               user?.publicMetadata?.role === 'admin' ||
+               user?.unsafeMetadata?.plan === 'premium'
+                ? 'Premium Plan ✨'
+                : 'Free Plan'}
+            </p>
           </div>
         </div>
         

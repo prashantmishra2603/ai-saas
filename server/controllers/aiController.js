@@ -1,12 +1,12 @@
 import sql from "../configs/db.js";
 import { clerkClient } from "@clerk/express";
 import Groq from "groq-sdk";
+import { HfInference } from "@huggingface/inference";
 
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
 import pdf from "pdf-parse/lib/pdf-parse.js";
-
 
 const AI = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -134,58 +134,49 @@ export const generateImage = async (req, res) => {
       });
     }
 
-    // ✅ Hugging Face Stable Diffusion API Image Generation
-    const response = await fetch(
-      "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
+    if (!prompt || !prompt.trim()) {
       return res.json({
         success: false,
-        message: "Hugging Face API Error: " + errText,
+        message: "Please enter a prompt to generate an image.",
       });
     }
 
-    // Convert response to buffer
-    const arrayBuffer = await response.arrayBuffer();
+    // Modern Hugging Face Inference using FLUX.1-schnell
+    const hf = new HfInference(process.env.HUGGING_FACE_API_KEY);
+    const imageBlob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: prompt,
+    });
+
+    const arrayBuffer = await imageBlob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Cloudinary
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "image" },
-      async (error, result) => {
-        if (error) {
-          return res.json({
-            success: false,
-            message: "Cloudinary upload failed: " + error.message,
-          });
+    // If Cloudinary is configured, upload to Cloudinary
+    if (
+      process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET
+    ) {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: "image" },
+        async (error, result) => {
+          if (error) {
+            const base64Image = `data:${imageBlob.type || "image/png"};base64,${buffer.toString("base64")}`;
+            await saveCreationSafely(() => sql`INSERT INTO creations (user_id, prompt, content, type, publish) VALUES (${userId}, ${prompt}, ${base64Image}, 'image', ${publish ?? false})`);
+            return res.json({ success: true, content: base64Image });
+          }
+
+          await saveCreationSafely(() => sql`INSERT INTO creations (user_id, prompt, content, type, publish) VALUES (${userId}, ${prompt}, ${result.secure_url}, 'image', ${publish ?? false})`);
+          res.json({ success: true, content: result.secure_url });
         }
-
-        // Save URL in DB
-        await saveCreationSafely(() => sql`INSERT INTO creations (user_id, prompt, content, type, publish)
-                  VALUES (${userId}, ${prompt}, ${result.secure_url}, 'image', ${
-          publish ?? false
-        })`);
-
-        res.json({
-          success: true,
-          content: result.secure_url,
-        });
-      }
-    );
-
-    uploadStream.end(buffer);
+      );
+      uploadStream.end(buffer);
+    } else {
+      // Direct high-resolution data URI if Cloudinary is not yet filled
+      const base64Image = `data:${imageBlob.type || "image/png"};base64,${buffer.toString("base64")}`;
+      await saveCreationSafely(() => sql`INSERT INTO creations (user_id, prompt, content, type, publish) VALUES (${userId}, ${prompt}, ${base64Image}, 'image', ${publish ?? false})`);
+      res.json({ success: true, content: base64Image });
+    }
   } catch (error) {
     console.error("generateImage error:", error.message);
     res.json({ success: false, message: error.message });

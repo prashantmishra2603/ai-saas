@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Gem, Sparkles, Search, Layers } from "lucide-react";
-import { Protect, useAuth } from "@clerk/clerk-react";
+import { Gem, Sparkles, Search, Layers, ArrowUpRight } from "lucide-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import CreationItem from "../components/CreationItem";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -26,8 +26,34 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [updatingPlan, setUpdatingPlan] = useState(false);
 
   const { getToken } = useAuth();
+  const { user } = useUser();
+
+  const isPremium = Boolean(
+    user?.publicMetadata?.plan === "premium" ||
+    user?.publicMetadata?.role === "admin" ||
+    user?.unsafeMetadata?.plan === "premium"
+  );
+
+  const togglePlanSwitch = async () => {
+    if (!user) return;
+    try {
+      setUpdatingPlan(true);
+      const nextPlan = isPremium ? "free" : "premium";
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          plan: nextPlan,
+        },
+      });
+      toast.success(nextPlan === "premium" ? "Switched to Premium Plan! ✨" : "Switched to Free Plan.");
+    } catch (error) {
+      toast.error(error.message);
+    }
+    setUpdatingPlan(false);
+  };
 
   const getDashboardData = async () => {
     try {
@@ -105,11 +131,25 @@ const Dashboard = () => {
         {/* Active plan card */}
         <div className="flex justify-between items-center w-72 p-4 px-5 bg-white rounded-xl border border-gray-200 shadow-xs">
           <div className="text-slate-600">
-            <p className="text-sm">Active Plan</p>
-            <h2 className="text-xl font-semibold text-slate-800">
-              <Protect plan="premium" fallback="Free">
-                Premium
-              </Protect>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">Active Plan</p>
+              <button
+                type="button"
+                disabled={updatingPlan}
+                onClick={togglePlanSwitch}
+                className="text-[10px] bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full border border-purple-200 cursor-pointer transition flex items-center gap-0.5"
+                title="Click to toggle between Free & Premium"
+              >
+                {updatingPlan ? "..." : isPremium ? "Switch Free" : "Upgrade"}
+                <ArrowUpRight className="w-2.5 h-2.5" />
+              </button>
+            </div>
+            <h2 className="text-xl font-semibold text-slate-800 mt-0.5">
+              {isPremium ? (
+                <span className="text-purple-600 font-bold">Premium ✨</span>
+              ) : (
+                "Free"
+              )}
             </h2>
           </div>
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF61C5] to-[#9E53EE] text-white flex justify-center items-center">
