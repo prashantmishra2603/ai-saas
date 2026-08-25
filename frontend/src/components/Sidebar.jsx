@@ -3,10 +3,11 @@ import { NavLink } from 'react-router-dom'
 import { useClerk, useUser } from '@clerk/clerk-react'
 import { 
   Eraser, FileText, Hash, House, 
-  Image, Scissors, SquarePen, Users, LogOut 
+  Image, Scissors, SquarePen, Users, LogOut,
+  Code2, AlignLeft, Mail, SpellCheck, Share2, Languages
 } from 'lucide-react'
 
-// Navigation configuration [cite: 5]
+// Navigation configuration
 const navItems = [
   { to: '/ai', label: 'Dashboard', Icon: House },
   { to: '/ai/write-article', label: 'Write Article', Icon: SquarePen },
@@ -15,6 +16,12 @@ const navItems = [
   { to: '/ai/remove-background', label: 'Remove Background', Icon: Eraser },
   { to: '/ai/remove-object', label: 'Remove Object', Icon: Scissors },
   { to: '/ai/review-resume', label: 'Review Resume', Icon: FileText },
+  { to: '/ai/review-code', label: 'AI Code Review', Icon: Code2 },
+  { to: '/ai/summarize-text', label: 'Summarize Text', Icon: AlignLeft },
+  { to: '/ai/email-writer', label: 'Email Writer', Icon: Mail },
+  { to: '/ai/grammar-improver', label: 'Grammar Improver', Icon: SpellCheck },
+  { to: '/ai/social-content', label: 'Social Content', Icon: Share2 },
+  { to: '/ai/translate', label: 'AI Translator', Icon: Languages },
   { to: '/ai/community', label: 'Community', Icon: Users },
 ]
 
@@ -23,19 +30,19 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   const { signOut, openUserProfile } = useClerk()
 
   return (
-    <div className={`w-60 bg-white border-r border-gray-200 flex flex-col justify-between items-center max-sm:absolute top-14 bottom-0 ${sidebar ? 'translate-x-0' : 'max-sm:-translate-x-full'} transition-all duration-300 ease-in-out z-50`}>
+    <div className={`w-64 bg-white border-r border-gray-200 flex flex-col justify-between items-center max-sm:absolute top-14 bottom-0 ${sidebar ? 'translate-x-0' : 'max-sm:-translate-x-full'} transition-all duration-300 ease-in-out z-50 h-[calc(100vh-3.5rem)]`}>
       
-      <div className='my-7 w-full'>
+      <div className='my-4 w-full flex-1 overflow-y-auto'>
         {/* User Header Section  */}
         <img 
           src={user?.imageUrl} 
           alt="User avatar" 
-          className='w-13 rounded-full mx-auto' 
+          className='w-12 h-12 rounded-full mx-auto' 
         />
-        <h1 className='mt-1 text-center font-medium'>{user?.fullName}</h1>
+        <h1 className='mt-1 text-center font-medium text-slate-800 text-sm'>{user?.fullName}</h1>
 
         {/* Navigation Links  */}
-        <div className='mt-10 px-4 flex flex-col gap-2'>
+        <div className='mt-6 px-3 flex flex-col gap-1.5 pb-4'>
           {navItems.map(({ to, label, Icon }) => (
             <NavLink 
               key={to} 
@@ -43,17 +50,17 @@ const Sidebar = ({ sidebar, setSidebar }) => {
               end={to === '/ai'}
               onClick={() => setSidebar(false)} 
               className={({ isActive }) => 
-                `px-3.5 py-2.5 flex items-center gap-3 rounded-lg transition-all ${
+                `px-3 py-2 flex items-center gap-3 rounded-lg transition-all ${
                   isActive 
-                  ? 'bg-gradient-to-r from-[#3C81F6] to-[#9234EA] text-white' 
+                  ? 'bg-gradient-to-r from-[#3C81F6] to-[#9234EA] text-white shadow-sm' 
                   : 'text-gray-600 hover:bg-gray-50'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
-                  <span className='text-sm font-medium'>{label}</span>
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <span className='text-xs font-medium truncate'>{label}</span>
                 </>
               )}
             </NavLink>

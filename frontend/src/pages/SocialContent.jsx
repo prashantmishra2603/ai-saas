@@ -1,37 +1,32 @@
 import React, { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
-import { Code2, Sparkles, Copy, Check, Download } from "lucide-react";
+import { Share2, Sparkles, Copy, Check, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import Markdown from "react-markdown";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
-const CodeReview = () => {
-  const languages = [
-    "JavaScript",
-    "TypeScript",
-    "Python",
-    "Java",
-    "C++",
-    "Go",
-    "Rust",
-    "PHP",
-    "HTML/CSS",
-    "SQL",
+const SocialContent = () => {
+  const platforms = [
+    "LinkedIn Post",
+    "Twitter / X Thread",
+    "Instagram Caption",
+    "YouTube Description",
   ];
 
-  const reviewModes = [
-    "Full Code Audit",
-    "Bug Detection & Fix",
-    "Performance Optimization",
-    "Security Audit",
-    "Clean Code & Refactor",
+  const toneOptions = [
+    "Viral & Engaging",
+    "Professional & Thought-Leader",
+    "Educational & Informative",
+    "Storytelling & Inspiring",
+    "Humorous & Casual",
   ];
 
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
-  const [selectedMode, setSelectedMode] = useState(reviewModes[0]);
-  const [code, setCode] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState(platforms[0]);
+  const [selectedTone, setSelectedTone] = useState(toneOptions[0]);
+  const [includeHashtags, setIncludeHashtags] = useState(true);
+  const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
   const [copied, setCopied] = useState(false);
@@ -41,19 +36,20 @@ const CodeReview = () => {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
-    if (!code.trim()) {
-      return toast.error("Please paste your code to review.");
+    if (!topic.trim()) {
+      return toast.error("Please enter a topic for your social post.");
     }
 
     try {
       setLoading(true);
 
       const { data } = await axios.post(
-        "/api/ai/review-code",
+        "/api/ai/generate-social-content",
         {
-          code,
-          language: selectedLanguage,
-          focus: selectedMode,
+          topic,
+          platform: selectedPlatform,
+          tone: selectedTone,
+          includeHashtags,
         },
         {
           headers: {
@@ -77,97 +73,111 @@ const CodeReview = () => {
     if (!content) return;
     navigator.clipboard.writeText(content);
     setCopied(true);
-    toast.success("Code review copied to clipboard!");
+    toast.success("Post copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadReview = () => {
+  const downloadPost = () => {
     if (!content) return;
     const element = document.createElement("a");
-    const file = new Blob([content], { type: "text/markdown" });
+    const file = new Blob([content], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = `code-review-${Date.now()}.md`;
+    element.download = `social-post-${Date.now()}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    toast.success("Review downloaded as Markdown!");
+    toast.success("Post saved as text!");
   };
 
   return (
     <div className="h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700">
-      {/* Left Column: Form Configuration */}
+      {/* Left Column */}
       <form
         onSubmit={onSubmitHandler}
         className="w-full max-w-lg p-4 bg-white rounded-lg border border-gray-200"
       >
         <div className="flex items-center gap-3">
-          <Sparkles className="w-6 text-[#0284C7]" />
-          <h1 className="text-xl font-semibold">AI Code Reviewer</h1>
+          <Sparkles className="w-6 text-[#F59E0B]" />
+          <h1 className="text-xl font-semibold">Social Media Creator</h1>
         </div>
 
-        <p className="mt-6 text-sm font-medium">Programming Language</p>
+        <p className="mt-6 text-sm font-medium">Target Platform</p>
         <div className="mt-2 flex gap-2 flex-wrap">
-          {languages.map((lang) => (
+          {platforms.map((platform) => (
             <span
-              key={lang}
-              onClick={() => setSelectedLanguage(lang)}
+              key={platform}
+              onClick={() => setSelectedPlatform(platform)}
               className={`text-xs px-3 py-1 border rounded-full cursor-pointer transition-colors ${
-                selectedLanguage === lang
-                  ? "bg-sky-50 border-sky-500 text-sky-700 font-medium"
+                selectedPlatform === platform
+                  ? "bg-amber-50 border-amber-500 text-amber-700 font-medium"
                   : "text-gray-500 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {lang}
+              {platform}
             </span>
           ))}
         </div>
 
-        <p className="mt-4 text-sm font-medium">Review Focus</p>
+        <p className="mt-4 text-sm font-medium">Tone & Style</p>
         <div className="mt-2 flex gap-2 flex-wrap">
-          {reviewModes.map((mode) => (
+          {toneOptions.map((tone) => (
             <span
-              key={mode}
-              onClick={() => setSelectedMode(mode)}
+              key={tone}
+              onClick={() => setSelectedTone(tone)}
               className={`text-xs px-3 py-1 border rounded-full cursor-pointer transition-colors ${
-                selectedMode === mode
-                  ? "bg-blue-50 border-blue-600 text-blue-700 font-medium"
+                selectedTone === tone
+                  ? "bg-amber-50 border-amber-500 text-amber-700 font-medium"
                   : "text-gray-500 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {mode}
+              {tone}
             </span>
           ))}
         </div>
 
-        <p className="mt-4 text-sm font-medium">Paste Your Code</p>
+        <p className="mt-4 text-sm font-medium">Post Topic / Story / Announcement</p>
         <textarea
-          onChange={(e) => setCode(e.target.value)}
-          value={code}
-          rows={8}
-          className="w-full p-3 mt-2 outline-none text-xs font-mono rounded-md border border-gray-300 focus:border-sky-500 bg-slate-900 text-slate-100 placeholder:text-slate-500 resize-y"
-          placeholder={`// Paste your ${selectedLanguage} snippet here...`}
+          onChange={(e) => setTopic(e.target.value)}
+          value={topic}
+          rows={5}
+          className="w-full p-3 mt-1.5 outline-none text-sm rounded-md border border-gray-300 focus:border-amber-500 resize-y"
+          placeholder="e.g. Launched our new AI product today, 5 lessons learned while building SaaS from scratch, why remote work is the future..."
           required
         />
 
+        <div className="my-4 flex items-center gap-2">
+          <label className="relative cursor-pointer">
+            <input
+              type="checkbox"
+              onChange={(e) => setIncludeHashtags(e.target.checked)}
+              checked={includeHashtags}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 rounded-full bg-slate-300 peer-checked:bg-amber-500 transition"></div>
+            <span className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition peer-checked:translate-x-4"></span>
+          </label>
+          <p className="text-sm">Include relevant hashtags & call to action</p>
+        </div>
+
         <button
           disabled={loading}
-          className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#0284C7] to-[#2563EB] text-white px-4 py-2 mt-5 text-sm rounded-lg cursor-pointer hover:opacity-95 transition"
+          className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white px-4 py-2 mt-2 text-sm rounded-lg cursor-pointer hover:opacity-95 transition"
         >
           {loading ? (
             <span className="w-4 h-4 my-1 rounded-full border-2 border-t-transparent animate-spin"></span>
           ) : (
-            <Code2 className="w-5" />
+            <Share2 className="w-5" />
           )}
-          Analyze & Review Code
+          Generate Social Post
         </button>
       </form>
 
-      {/* Right Column: Results */}
+      {/* Right Column */}
       <div className="w-full max-w-lg p-4 bg-white rounded-lg border border-gray-200 flex flex-col min-h-96 max-h-[600px]">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Code2 className="w-5 h-5 text-[#0284C7]" />
-            <h1 className="text-xl font-semibold">Review Analysis</h1>
+            <Share2 className="w-5 h-5 text-[#F59E0B]" />
+            <h1 className="text-xl font-semibold">Ready to Post</h1>
           </div>
           {content && (
             <div className="flex items-center gap-2">
@@ -181,8 +191,8 @@ const CodeReview = () => {
               </button>
               <button
                 type="button"
-                onClick={downloadReview}
-                className="flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-[#0284C7] to-[#2563EB] px-2.5 py-1.5 rounded-md transition"
+                onClick={downloadPost}
+                className="flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-[#F59E0B] to-[#D97706] px-2.5 py-1.5 rounded-md transition"
               >
                 <Download className="w-3.5 h-3.5" />
                 Download
@@ -194,8 +204,8 @@ const CodeReview = () => {
         {!content ? (
           <div className="flex-1 flex justify-center items-center">
             <div className="text-sm flex flex-col items-center gap-4 text-gray-300 text-center">
-              <Code2 className="w-10 h-10" />
-              <p>Paste code on the left and click 'Analyze & Review Code'</p>
+              <Share2 className="w-10 h-10" />
+              <p>Enter your topic on the left and click 'Generate Social Post'</p>
             </div>
           </div>
         ) : (
@@ -210,4 +220,4 @@ const CodeReview = () => {
   );
 };
 
-export default CodeReview;
+export default SocialContent;

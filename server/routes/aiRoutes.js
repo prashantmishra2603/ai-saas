@@ -6,6 +6,12 @@ import {
   removeImageBackground,
   removeImageObject,
   reviewResume,
+  reviewCode,
+  summarizeText,
+  generateEmail,
+  improveGrammar,
+  generateSocialContent,
+  translateContent,
 } from "../controllers/aiController.js";
 import { auth } from "../middlewares/auth.js";
 import { upload } from "../configs/multer.js";
@@ -31,5 +37,11 @@ aiRouter.post(
 );
 
 aiRouter.post("/review-resume", upload.single("resume"), auth, reviewResume);
+aiRouter.post("/review-code", auth, reviewCode);
+aiRouter.post("/summarize-text", auth, summarizeText);
+aiRouter.post("/generate-email", auth, generateEmail);
+aiRouter.post("/improve-grammar", auth, improveGrammar);
+aiRouter.post("/generate-social-content", auth, generateSocialContent);
+aiRouter.post("/translate-content", auth, translateContent);
 
 export default aiRouter;

@@ -5,7 +5,10 @@ import star_icon from "./star_icon.svg";
 import star_dull_icon from "./star_dull_icon.svg";
 import profile_img_1 from "./profile_img_1.png";
 import arrow_icon from "./arrow_icon.svg";
-import { SquarePen, Hash, Image, Eraser, Scissors, FileText } from 'lucide-react'
+import { 
+    SquarePen, Hash, Image, Eraser, Scissors, FileText, 
+    Code2, AlignLeft, Mail, SpellCheck, Share2, Languages 
+} from 'lucide-react'
 import ai_gen_img_1 from "./ai_gen_img_1.png";
 import ai_gen_img_2 from "./ai_gen_img_2.png";
 import ai_gen_img_3 from "./ai_gen_img_3.png";
@@ -37,7 +40,7 @@ export const AiToolsData = [
     },
     {
         title: 'AI Image Generation',
-        description: 'Create stunning visuals with our AI image generation tool, Experience the power of AI ',
+        description: 'Create stunning visuals with our AI image generation tool, Experience the power of AI',
         Icon: Image,
         bg: { from: '#20C363', to: '#11B97E' },
         path: '/ai/generate-images'
@@ -62,6 +65,48 @@ export const AiToolsData = [
         Icon: FileText,
         bg: { from: '#12B7AC', to: '#08B6CE' },
         path: '/ai/review-resume'
+    },
+    {
+        title: 'AI Code Reviewer',
+        description: 'Analyze, debug, optimize, and refactor code across multiple programming languages.',
+        Icon: Code2,
+        bg: { from: '#0284C7', to: '#2563EB' },
+        path: '/ai/review-code'
+    },
+    {
+        title: 'AI Text Summarizer',
+        description: 'Condense long articles and documents into actionable executive briefs and bullet points.',
+        Icon: AlignLeft,
+        bg: { from: '#8B5CF6', to: '#6D28D9' },
+        path: '/ai/summarize-text'
+    },
+    {
+        title: 'AI Email Generator',
+        description: 'Compose persuasive cold emails, professional follow-ups, and customer replies instantly.',
+        Icon: Mail,
+        bg: { from: '#EC4899', to: '#BE185D' },
+        path: '/ai/email-writer'
+    },
+    {
+        title: 'Grammar & Tone Improver',
+        description: 'Fix grammar, improve vocabulary, and adapt writing tone for any audience.',
+        Icon: SpellCheck,
+        bg: { from: '#10B981', to: '#059669' },
+        path: '/ai/grammar-improver'
+    },
+    {
+        title: 'Social Media Creator',
+        description: 'Generate viral LinkedIn posts, Twitter/X threads, and Instagram captions with hashtags.',
+        Icon: Share2,
+        bg: { from: '#F59E0B', to: '#D97706' },
+        path: '/ai/social-content'
+    },
+    {
+        title: 'AI Multilingual Translator',
+        description: 'Translate documents and messages accurately into 15+ languages with cultural nuance.',
+        Icon: Languages,
+        bg: { from: '#6366F1', to: '#4F46E5' },
+        path: '/ai/translate'
     }
 ]
 

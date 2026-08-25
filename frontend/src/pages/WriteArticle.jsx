@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
-import { Edit, Sparkles } from "lucide-react";
+import { Edit, Sparkles, Copy, Check, Download } from "lucide-react";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import Markdown from "react-markdown";
@@ -18,6 +18,7 @@ const WriteArticle = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const { getToken } = useAuth();
 
@@ -49,6 +50,26 @@ const WriteArticle = () => {
     setLoading(false);
   };
 
+  const copyToClipboard = () => {
+    if (!content) return;
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    toast.success("Article copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadArticle = () => {
+    if (!content) return;
+    const element = document.createElement("a");
+    const file = new Blob([content], { type: "text/markdown" });
+    element.href = URL.createObjectURL(file);
+    element.download = `article-${Date.now()}.md`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success("Article downloaded as Markdown!");
+  };
+
   return (
     <div className="h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700">
       {/* left col */}
@@ -66,7 +87,7 @@ const WriteArticle = () => {
           onChange={(e) => setInput(e.target.value)}
           value={input}
           type="text"
-          className="w-full p-2 px-3 mt-2 outline-none text-sm rounded-md border border-gray-300"
+          className="w-full p-2 px-3 mt-2 outline-none text-sm rounded-md border border-gray-300 focus:border-[#4A7AFF]"
           placeholder="The future of artificial intelligence is..."
           required
         />
@@ -77,10 +98,10 @@ const WriteArticle = () => {
           {articleLength.map((item, index) => (
             <span
               onClick={() => setSelectedLength(item)}
-              className={`text-xs px-4 py-1 border rounded-full cursor-pointer ${
+              className={`text-xs px-4 py-1 border rounded-full cursor-pointer transition-colors ${
                 selectedLength.text === item.text
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-500 border-gray-300"
+                  ? "bg-blue-50 border-blue-500 text-blue-700 font-medium"
+                  : "text-gray-500 border-gray-300 hover:bg-gray-50"
               }`}
               key={index}
             >
@@ -91,7 +112,7 @@ const WriteArticle = () => {
         <br />
         <button
           disabled={loading}
-          className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#226BFF] to-[#65ABFF] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer  "
+          className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#226BFF] to-[#65ABFF] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer hover:opacity-95 transition"
         >
           {loading ? (
             <span className="w-4 h-4 my-1 rounded-full border-2 border-t-transparent animate-spin"></span>
@@ -103,9 +124,31 @@ const WriteArticle = () => {
       </form>
       {/* right col */}
       <div className="w-full max-w-lg p-4 bg-white rounded-lg border border-gray-200 flex flex-col min-h-96 max-h-[600px]">
-        <div className="flex items-center gap-3">
-          <Edit className="w-5 h-5 text-[#4A7AFF]" />
-          <h1 className="text-xl font-semibold">Generated Article</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Edit className="w-5 h-5 text-[#4A7AFF]" />
+            <h1 className="text-xl font-semibold">Generated Article</h1>
+          </div>
+          {content && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={copyToClipboard}
+                className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 px-2.5 py-1.5 rounded-md transition"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+              <button
+                type="button"
+                onClick={downloadArticle}
+                className="flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-[#226BFF] to-[#65ABFF] px-2.5 py-1.5 rounded-md transition"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download
+              </button>
+            </div>
+          )}
         </div>
         {!content ? (
           <div className="flex-1 flex justify-center items-center">
@@ -115,7 +158,7 @@ const WriteArticle = () => {
             </div>
           </div>
         ) : (
-          <div className="mt-3 h-full overflow-y-scroll text-sm text-slate-600">
+          <div className="mt-3 h-full overflow-y-scroll text-sm text-slate-600 pr-1">
             <div className="reset-tw">
               <Markdown>{content}</Markdown>
             </div>

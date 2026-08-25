@@ -1,37 +1,30 @@
 import React, { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
-import { Code2, Sparkles, Copy, Check, Download } from "lucide-react";
+import { AlignLeft, Sparkles, Copy, Check, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import Markdown from "react-markdown";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
-const CodeReview = () => {
-  const languages = [
-    "JavaScript",
-    "TypeScript",
-    "Python",
-    "Java",
-    "C++",
-    "Go",
-    "Rust",
-    "PHP",
-    "HTML/CSS",
-    "SQL",
+const SummarizeText = () => {
+  const formatOptions = [
+    "Key Bullet Points",
+    "Executive Brief",
+    "ELI5 (Simple Explanation)",
+    "TL;DR (1 Sentence)",
+    "Action Items & Takeaways",
   ];
 
-  const reviewModes = [
-    "Full Code Audit",
-    "Bug Detection & Fix",
-    "Performance Optimization",
-    "Security Audit",
-    "Clean Code & Refactor",
+  const lengthOptions = [
+    "Concise (Quick read)",
+    "Medium (Balanced)",
+    "Comprehensive (Detailed)",
   ];
 
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
-  const [selectedMode, setSelectedMode] = useState(reviewModes[0]);
-  const [code, setCode] = useState("");
+  const [selectedFormat, setSelectedFormat] = useState(formatOptions[0]);
+  const [selectedLength, setSelectedLength] = useState(lengthOptions[1]);
+  const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
   const [copied, setCopied] = useState(false);
@@ -41,19 +34,19 @@ const CodeReview = () => {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
-    if (!code.trim()) {
-      return toast.error("Please paste your code to review.");
+    if (!text.trim()) {
+      return toast.error("Please enter text to summarize.");
     }
 
     try {
       setLoading(true);
 
       const { data } = await axios.post(
-        "/api/ai/review-code",
+        "/api/ai/summarize-text",
         {
-          code,
-          language: selectedLanguage,
-          focus: selectedMode,
+          text,
+          format: selectedFormat,
+          length: selectedLength,
         },
         {
           headers: {
@@ -77,97 +70,97 @@ const CodeReview = () => {
     if (!content) return;
     navigator.clipboard.writeText(content);
     setCopied(true);
-    toast.success("Code review copied to clipboard!");
+    toast.success("Summary copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadReview = () => {
+  const downloadSummary = () => {
     if (!content) return;
     const element = document.createElement("a");
     const file = new Blob([content], { type: "text/markdown" });
     element.href = URL.createObjectURL(file);
-    element.download = `code-review-${Date.now()}.md`;
+    element.download = `summary-${Date.now()}.md`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    toast.success("Review downloaded as Markdown!");
+    toast.success("Summary downloaded!");
   };
 
   return (
     <div className="h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700">
-      {/* Left Column: Form Configuration */}
+      {/* Left Column */}
       <form
         onSubmit={onSubmitHandler}
         className="w-full max-w-lg p-4 bg-white rounded-lg border border-gray-200"
       >
         <div className="flex items-center gap-3">
-          <Sparkles className="w-6 text-[#0284C7]" />
-          <h1 className="text-xl font-semibold">AI Code Reviewer</h1>
+          <Sparkles className="w-6 text-[#8B5CF6]" />
+          <h1 className="text-xl font-semibold">AI Text Summarizer</h1>
         </div>
 
-        <p className="mt-6 text-sm font-medium">Programming Language</p>
+        <p className="mt-6 text-sm font-medium">Summary Format</p>
         <div className="mt-2 flex gap-2 flex-wrap">
-          {languages.map((lang) => (
+          {formatOptions.map((item) => (
             <span
-              key={lang}
-              onClick={() => setSelectedLanguage(lang)}
+              key={item}
+              onClick={() => setSelectedFormat(item)}
               className={`text-xs px-3 py-1 border rounded-full cursor-pointer transition-colors ${
-                selectedLanguage === lang
-                  ? "bg-sky-50 border-sky-500 text-sky-700 font-medium"
+                selectedFormat === item
+                  ? "bg-purple-50 border-purple-600 text-purple-700 font-medium"
                   : "text-gray-500 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {lang}
+              {item}
             </span>
           ))}
         </div>
 
-        <p className="mt-4 text-sm font-medium">Review Focus</p>
+        <p className="mt-4 text-sm font-medium">Length</p>
         <div className="mt-2 flex gap-2 flex-wrap">
-          {reviewModes.map((mode) => (
+          {lengthOptions.map((item) => (
             <span
-              key={mode}
-              onClick={() => setSelectedMode(mode)}
+              key={item}
+              onClick={() => setSelectedLength(item)}
               className={`text-xs px-3 py-1 border rounded-full cursor-pointer transition-colors ${
-                selectedMode === mode
-                  ? "bg-blue-50 border-blue-600 text-blue-700 font-medium"
+                selectedLength === item
+                  ? "bg-purple-50 border-purple-600 text-purple-700 font-medium"
                   : "text-gray-500 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {mode}
+              {item}
             </span>
           ))}
         </div>
 
-        <p className="mt-4 text-sm font-medium">Paste Your Code</p>
+        <p className="mt-4 text-sm font-medium">Original Content / Article</p>
         <textarea
-          onChange={(e) => setCode(e.target.value)}
-          value={code}
-          rows={8}
-          className="w-full p-3 mt-2 outline-none text-xs font-mono rounded-md border border-gray-300 focus:border-sky-500 bg-slate-900 text-slate-100 placeholder:text-slate-500 resize-y"
-          placeholder={`// Paste your ${selectedLanguage} snippet here...`}
+          onChange={(e) => setText(e.target.value)}
+          value={text}
+          rows={7}
+          className="w-full p-3 mt-2 outline-none text-sm rounded-md border border-gray-300 focus:border-purple-500 resize-y"
+          placeholder="Paste meeting notes, research paper, article or transcript here..."
           required
         />
 
         <button
           disabled={loading}
-          className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#0284C7] to-[#2563EB] text-white px-4 py-2 mt-5 text-sm rounded-lg cursor-pointer hover:opacity-95 transition"
+          className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] text-white px-4 py-2 mt-5 text-sm rounded-lg cursor-pointer hover:opacity-95 transition"
         >
           {loading ? (
             <span className="w-4 h-4 my-1 rounded-full border-2 border-t-transparent animate-spin"></span>
           ) : (
-            <Code2 className="w-5" />
+            <AlignLeft className="w-5" />
           )}
-          Analyze & Review Code
+          Generate Summary
         </button>
       </form>
 
-      {/* Right Column: Results */}
+      {/* Right Column */}
       <div className="w-full max-w-lg p-4 bg-white rounded-lg border border-gray-200 flex flex-col min-h-96 max-h-[600px]">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Code2 className="w-5 h-5 text-[#0284C7]" />
-            <h1 className="text-xl font-semibold">Review Analysis</h1>
+            <AlignLeft className="w-5 h-5 text-[#8B5CF6]" />
+            <h1 className="text-xl font-semibold">Generated Summary</h1>
           </div>
           {content && (
             <div className="flex items-center gap-2">
@@ -181,8 +174,8 @@ const CodeReview = () => {
               </button>
               <button
                 type="button"
-                onClick={downloadReview}
-                className="flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-[#0284C7] to-[#2563EB] px-2.5 py-1.5 rounded-md transition"
+                onClick={downloadSummary}
+                className="flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] px-2.5 py-1.5 rounded-md transition"
               >
                 <Download className="w-3.5 h-3.5" />
                 Download
@@ -194,8 +187,8 @@ const CodeReview = () => {
         {!content ? (
           <div className="flex-1 flex justify-center items-center">
             <div className="text-sm flex flex-col items-center gap-4 text-gray-300 text-center">
-              <Code2 className="w-10 h-10" />
-              <p>Paste code on the left and click 'Analyze & Review Code'</p>
+              <AlignLeft className="w-10 h-10" />
+              <p>Paste text on the left and click 'Generate Summary'</p>
             </div>
           </div>
         ) : (
@@ -210,4 +203,4 @@ const CodeReview = () => {
   );
 };
 
-export default CodeReview;
+export default SummarizeText;
